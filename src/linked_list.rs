@@ -71,6 +71,53 @@ mod tests {
         assert_eq!(result, data);
     }
 
+    #[test]
+    fn linked_list_insert() {
+        // Data
+        let data0 = 0;
+        let data1 = 1;
+        let mut linked_list: LinkedList<i32> = LinkedList::new();
+        // Run
+        linked_list.insert(data0, None);
+        linked_list.insert(data1, None);
+        let result0 = linked_list.read_at(0).unwrap();
+        let result1 = linked_list.read_at(1).unwrap();
+        // Assert
+        assert_eq!(result0, data0);
+        assert_eq!(result1, data1);
+    }
+
+    #[test]
+    fn linked_list_insert_between() {
+        // Data
+        let data0 = 0;
+        let data1 = 1;
+        let data2 = 2;
+        let mut linked_list: LinkedList<i32> = LinkedList::new();
+        // Run
+        linked_list.insert(data0, None);
+        linked_list.insert(data2, None);
+        linked_list.insert(data1, Some(1));
+        let result0 = linked_list.read_at(0).unwrap();
+        let result1 = linked_list.read_at(1).unwrap();
+        let result2 = linked_list.read_at(2).unwrap();
+        // Assert
+        assert_eq!(result0, data0);
+        assert_eq!(result1, data1);
+        assert_eq!(result2, data2);
+    }
+
+    #[test]
+    fn linked_list_insert_out_of_range() {
+        // Data
+        let data2 = 2;
+        let mut linked_list: LinkedList<i32> = LinkedList::new();
+        // Run
+        let result = linked_list.insert(data2, Some(2));
+        // Assert
+        assert!(result.is_err());
+    }
+
     // READ
 
     #[test]

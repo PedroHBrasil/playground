@@ -5,47 +5,37 @@ mod node;
 
 /// Represents a single-linked list
 pub struct LinkedList<'a, T> {
-    // First node of the linked list
-    head: &'a NodeSingle<'a, T>
+    /// First node of the linked list
+    head: Option<&'a NodeSingle<'a, T>>,
+    /// Number of nodes in linked list
+    n_nodes: usize,
 }
 
 impl<'a, T> LinkedList<'a, T> {
-    /// Gets first node
-    pub fn get_first_node(&self) -> &NodeSingle<T> {
-        self.head
-    }
-    /// Gets value of last node
-    pub fn get_last_node(&self) -> &NodeSingle<T> {
-        // Sweeps nodes until the last one (.next is None) is found
-        let mut cur_node = self.head;
-        while let Ok(next_node) = cur_node.get_next() {
-            cur_node = next_node;
-        }
+    /// CREATE
 
-        cur_node
-    }
-    /// Gets value of node at index i
-    pub fn get_node_at(&self, i: u32) -> Result<&NodeSingle<T>, Box<dyn Error>> {
-        // Sweeps nodes until the target index. Panics if the index is bigger than the number of nodes.
-        let mut cur_node = self.head;
-        let mut counter: u32 = 0;
-        while counter != i {
-            cur_node = cur_node.get_next()?;
-            counter += 1;
-        }
+    /// Constructor
+    pub fn new(head_data: Option<T>) -> Self {}
+    /// Inserts new data (at the end if no index is specified)
+    pub fn insert(new_data: T, i: Option<usize>) -> Result<(), Box<dyn Error>> {}
 
-        Ok(cur_node)
-    }
-    /// Gets value of first node
-    pub fn get_first_value(&self) -> &T {
-        self.get_first_node().get_data()
-    }
-    /// Gets value of last node
-    pub fn get_last_value(&self) -> &T {
-        self.get_last_node().get_data()
-    }
-    /// Gets value of node at index i
-    pub fn get_value_at(&self, i: u32) -> Result<&T, Box<dyn Error>> {
-        Ok(self.get_node_at(i)?.get_data())
-    }
+    /// READ
+
+    /// Reads data at specified index
+    pub fn data_at(i: usize) -> Result<T, Box<dyn Error>> {}
+    /// Gets index of specified data in array
+    pub fn index_of(data: T) -> Option<usize> {}
+
+    /// UPDATE
+
+    /// Updates data at specified node
+    pub fn update_at(new_data: T, i: usize) -> Result<(), Box<dyn Error>> {}
+    /// Swaps data of the specified nodes
+    pub fn swap_at(i_ref: usize, i_tgt: usize) -> Result<(), Box<dyn Error>> {}
+
+    /// DELETE
+
+    /// Removes node at specified index
+    pub fn remove_at(i: usize) -> Result<(), Box<dyn Error>> {}
+
 }

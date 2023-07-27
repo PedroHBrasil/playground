@@ -110,10 +110,11 @@ mod tests {
     #[test]
     fn linked_list_insert_out_of_range() {
         // Data
+        let i = 2;
         let data2 = 2;
         let mut linked_list: LinkedList<i32> = LinkedList::new();
         // Run
-        let result = linked_list.insert(data2, Some(2));
+        let result = linked_list.insert(data2, Some(i));
         // Assert
         assert!(result.is_err());
     }
@@ -123,16 +124,47 @@ mod tests {
     #[test]
     fn linked_list_read_at_0() {
         // Data
+        let i = 1;
         let data = 0;
         let mut linked_list: LinkedList<i32> = LinkedList::new();
         linked_list.insert(data, None);
         // Run
-        let result = linked_list.read_at(0).unwrap();
+        let result = linked_list.read_at(i).unwrap();
         // Assert
         assert_eq!(result, data);
     }
 
-    // INDEX
+    #[test]
+    fn linked_list_read_at_1() {
+        // Data
+        let i = 1;
+        let data0 = 0;
+        let data1 = 1;
+        let data2 = 0;
+        let mut linked_list: LinkedList<i32> = LinkedList::new();
+        linked_list.insert(data0, None);
+        linked_list.insert(data1, None);
+        linked_list.insert(data2, None);
+        // Run
+        let result = linked_list.read_at(i).unwrap();
+        // Assert
+        assert_eq!(result, data1);
+    }
+
+    #[test]
+    fn linked_list_read_out_of_range() {
+        // Data
+        let i = 1;
+        let data = 0;
+        let mut linked_list: LinkedList<i32> = LinkedList::new();
+        linked_list.insert(data, None);
+        // Run
+        let result = linked_list.read_at(i);
+        // Assert
+        assert!(result.is_err());
+    }
+
+    // SEARCH
 
     #[test]
     fn linked_list_index_of_0() {
@@ -142,9 +174,39 @@ mod tests {
         let mut linked_list: LinkedList<i32> = LinkedList::new();
         linked_list.insert(data, None);
         // Run
-        let result = linked_list.index_of(0).unwrap();
+        let result = linked_list.index_of(data).unwrap();
         // Assert
         assert_eq!(result, i);
+    }
+
+    #[test]
+    fn linked_list_index_of_1() {
+        // Data
+        let i = 1;
+        let data0 = 0;
+        let data1 = 1;
+        let data2 = 2;
+        let mut linked_list: LinkedList<i32> = LinkedList::new();
+        linked_list.insert(data0, None);
+        linked_list.insert(data1, None);
+        linked_list.insert(data2, None);
+        // Run
+        let result = linked_list.index_of(data1).unwrap();
+        // Assert
+        assert_eq!(result, i);
+    }
+
+    #[test]
+    fn linked_list_index_non_existent() {
+        // Data
+        let data = 0;
+        let data_search = 1;
+        let mut linked_list: LinkedList<i32> = LinkedList::new();
+        linked_list.insert(data, None);
+        // Run
+        let result = linked_list.index_of(data_search);
+        // Assert
+        assert_eq!(result, None);
     }
 
     // UPDATE
@@ -159,9 +221,43 @@ mod tests {
         let new_data = 1;
         // Run
         linked_list.update_at(new_data, i);
-        let result = linked_list.read_at(0).unwrap();
+        let result = linked_list.read_at(i).unwrap();
         // Assert
         assert_eq!(result, new_data);
+    }
+
+    #[test]
+    fn linked_list_update_at_1() {
+        // Data
+        let i = 1;
+        let data0 = 0;
+        let data1 = 1;
+        let data2 = 2;
+        let mut linked_list: LinkedList<i32> = LinkedList::new();
+        linked_list.insert(data0, None);
+        linked_list.insert(data1, None);
+        linked_list.insert(data2, None);
+        let new_data = 3;
+        // Run
+        linked_list.update_at(new_data, i);
+        let result = linked_list.read_at(i).unwrap();
+        // Assert
+        assert_eq!(result, new_data);
+    }
+
+    #[test]
+    fn linked_list_update_out_of_range() {
+        // Data
+        let i = 1;
+        let data = 0;
+        let mut linked_list: LinkedList<i32> = LinkedList::new();
+        linked_list.insert(data, None);
+        let new_data = 3;
+        // Run
+        linked_list.update_at(new_data, i);
+        let result = linked_list.read_at(i);
+        // Assert
+        assert!(result.is_err());
     }
 
     // SWAP
@@ -185,18 +281,67 @@ mod tests {
         assert_eq!(result1, data_ref);
     }
 
+    #[test]
+    fn linked_list_swap_at_0_out_of_range() {
+        // Data
+        let i_ref = 0;
+        let i_tgt = 2;
+        let data_ref = 0;
+        let data_tgt = 1;
+        let mut linked_list: LinkedList<i32> = LinkedList::new();
+        linked_list.insert(data_ref, None);
+        linked_list.insert(data_tgt, None);
+        // Run
+        let result = linked_list.swap_at(i_ref, i_tgt);
+        // Assert
+        assert!(result.is_err());
+    }
+
     // REMOVE
 
     #[test]
     fn linked_list_remove_at_0() {
         // Data
         let i = 0;
+        let data0 = 0;
+        let data1 = 1;
+        let mut linked_list: LinkedList<i32> = LinkedList::new();
+        linked_list.insert(data0, None);
+        linked_list.insert(data1, None);
+        // Run
+        linked_list.remove_at(i);
+        let result = linked_list.read_at(i).unwrap();
+        // Assert
+        assert_eq!(result, data1);
+    }
+
+    #[test]
+    fn linked_list_remove_at_1() {
+        // Data
+        let i = 1;
+        let data0 = 0;
+        let data1 = 1;
+        let data2 = 2;
+        let mut linked_list: LinkedList<i32> = LinkedList::new();
+        linked_list.insert(data0, None);
+        linked_list.insert(data1, None);
+        linked_list.insert(data2, None);
+        // Run
+        linked_list.remove_at(i);
+        let result = linked_list.read_at(i).unwrap();
+        // Assert
+        assert_eq!(result, data2);
+    }
+
+    #[test]
+    fn linked_list_remove_at_out_of_range() {
+        // Data
+        let i = 1;
         let data = 0;
         let mut linked_list: LinkedList<i32> = LinkedList::new();
         linked_list.insert(data, None);
         // Run
-        linked_list.remove_at(i);
-        let result = linked_list.read_at(0);
+        let result = linked_list.remove_at(i);
         // Assert
         assert!(result.is_err());
     }

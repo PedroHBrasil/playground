@@ -15,7 +15,12 @@ impl<'a, T> LinkedList<'a, T> {
     /// CREATE
 
     /// Constructor
-    pub fn new() -> Self {}
+    pub fn new() -> Self {
+        Self {
+            head: None,
+            length: 0,
+        }
+    }
     /// Inserts new data (at the end if no index is specified)
     pub fn insert(&self, new_data: T, i: Option<usize>) -> Result<(), Box<dyn Error>> {}
 

@@ -13,7 +13,7 @@ pub struct LinkedList<T: Copy> {
 
 impl<T> LinkedList<T>
 where
-    T: Copy,
+    T: Copy + std::cmp::PartialEq,
 {
     /// CREATE
 
@@ -112,8 +112,24 @@ where
         Ok(data)
     }
     /// Gets index of specified data in array
-    pub fn index_of(&self, data: T) -> Option<usize> {
-        None
+    pub fn index_of(&self, data_to_search: &T) -> Result<Option<usize>, Box<dyn Error>> {
+        // Gets node by looping through list until counter is i or a None is found as next node
+        let mut cur_node = self.head.clone();
+        let mut counter = 0;
+        while counter < self.length {
+            if let Some(node) = cur_node.clone() {
+                if node.borrow().get_data() == data_to_search {
+                    // Data found
+                    return Ok(Some(counter));
+                }
+                cur_node = node.borrow().get_next();
+                counter += 1;
+            } else {
+                return Err("None reference found before end of the list.".into());
+            }
+        }
+        // Data not found
+        Ok(None)
     }
 
     /// UPDATE
@@ -325,7 +341,7 @@ mod tests {
         let mut linked_list: LinkedList<i32> = LinkedList::new();
         let _ = linked_list.push(data);
         // Run
-        let result = linked_list.index_of(data).unwrap();
+        let result = linked_list.index_of(&data).unwrap().unwrap();
         // Assert
         assert_eq!(result, i);
     }
@@ -342,7 +358,7 @@ mod tests {
         let _ = linked_list.append(data1);
         let _ = linked_list.append(data2);
         // Run
-        let result = linked_list.index_of(data1).unwrap();
+        let result = linked_list.index_of(&data1).unwrap().unwrap();
         // Assert
         assert_eq!(result, i);
     }
@@ -355,7 +371,7 @@ mod tests {
         let mut linked_list: LinkedList<i32> = LinkedList::new();
         let _ = linked_list.push(data);
         // Run
-        let result = linked_list.index_of(data_search);
+        let result = linked_list.index_of(&data_search).unwrap();
         // Assert
         assert!(result.is_none());
     }

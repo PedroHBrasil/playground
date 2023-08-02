@@ -147,7 +147,20 @@ where
     }
     /// Swaps data of the specified nodes
     pub fn swap_at(&self, i_ref: usize, i_tgt: usize) -> Result<(), Box<dyn Error>> {
-        Err("Not implemented".into())
+        // Checks if indexes are valid
+        if i_ref >= self.length {
+            return Err("Reference index out of range.".into());
+        } else if i_tgt >= self.length {
+            return Err("Target index out of range.".into());
+        }
+        // Gets reference and target nodes data
+        let data_ref = self.read_at(i_ref)?;
+        let data_tgt = self.read_at(i_tgt)?;
+        // Sets reference and target nodes data, swapping them
+        self.update_at(data_ref, i_tgt)?;
+        self.update_at(data_tgt, i_ref)?;
+
+        Ok(())
     }
 
     /// DELETE
@@ -460,6 +473,22 @@ mod tests {
         // Data
         let i_ref = 0;
         let i_tgt = 2;
+        let data_ref = 0;
+        let data_tgt = 1;
+        let mut linked_list: LinkedList<i32> = LinkedList::new();
+        let _ = linked_list.push(data_ref);
+        let _ = linked_list.append(data_tgt);
+        // Run
+        let result = linked_list.swap_at(i_ref, i_tgt);
+        // Assert
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn linked_list_swap_at_out_of_range_1() {
+        // Data
+        let i_ref = 2;
+        let i_tgt = 1;
         let data_ref = 0;
         let data_tgt = 1;
         let mut linked_list: LinkedList<i32> = LinkedList::new();

@@ -25,32 +25,6 @@ where
         }
     }
 
-    /// Inserts new data (at the end if no index is specified)
-    pub fn insert(&mut self, new_data: T, i: Option<usize>) -> Result<(), Box<dyn Error>> {
-        // Returns an error if i is out of range
-        if let Some(i) = i {
-            // i as Some needs to decide how to insert the data
-            if i > self.length {  // invalid i
-                return Err("Index out of range.".into())
-            } else if i == 0 {  // new head
-                self.push(new_data)?;
-            } else if i == self.length {  // new tail
-                self.append(new_data)?;
-            } else {  // new common node
-                self.insert_at(new_data, i)?;
-            }
-        } else {
-            // i as None means that the data should be on a new tail
-            if self.length == 0 {
-                self.push(new_data)?;
-            } else {
-                self.append(new_data)?;
-            }
-        }
-
-        Ok(())
-    }
-
     // Inserts a new head for the linked list
     fn push(&mut self, new_data: T) -> Result<(), Box<dyn Error>> {
         if let Some(_cur_head) = self.head.clone() {
@@ -67,27 +41,40 @@ where
 
     // Inserts a new head for the linked list
     fn append(&mut self, new_data: T) -> Result<(), Box<dyn Error>> {
-        // Gets current tail
-        let cur_tail = self.get_node_at(self.length-1)?;
-        // Initializes new tail
-        let new_tail = NodeSingle::new(new_data, None);
-        // Sets new tail as current tail's next node
-        cur_tail.unwrap().borrow_mut().set_next(Some(Rc::new(RefCell::new(new_tail))));
+        // Checks if there's currently a head.
+        if self.head.is_none() {
+            let _ = self.push(new_data)?;
+        } else {
+            // Gets current tail
+            let cur_tail = self.get_node_at(self.length-1)?;
+            // Initializes new tail
+            let new_tail = NodeSingle::new(new_data, None);
+            // Sets new tail as current tail's next node
+            cur_tail.unwrap().borrow_mut().set_next(Some(Rc::new(RefCell::new(new_tail))));
 
-        self.length += 1;
+            self.length += 1;
+        }
 
         Ok(())
     }
 
-    fn insert_at(&mut self, new_data: T, i: usize) -> Result<(), Box<dyn Error>> {
-        // Gets current i node
-        let cur_node_at_i = self.get_node_at(i)?;
-        // Sets current i node as next of new node
-        let new_node = NodeSingle::new(new_data, cur_node_at_i);
-        // Sets previous node's next node to new node
-        (self.get_node_at(i-1)?).unwrap().borrow_mut().set_next(Some(Rc::new(RefCell::new(new_node))));
+    fn insert_after(&mut self, new_data: T, i: usize) -> Result<(), Box<dyn Error>> {
+        // Checks if list is empty or if is trying to insert at the last element
+        if self.length == 0 {
+            return Err("List is currently empty. Use push to insert the first element.".into());
+        }
+        else if i == self.length-1 {
+            let _ = self.append(new_data)?;
+        } else {
+            // Gets current i node
+            let cur_node_at_i = self.get_node_at(i+1)?;
+            // Sets current i node as next of new node
+            let new_node = NodeSingle::new(new_data, cur_node_at_i);
+            // Sets previous node's next node to new node
+            (self.get_node_at(i)?).unwrap().borrow_mut().set_next(Some(Rc::new(RefCell::new(new_node))));
 
-        self.length += 1;
+            self.length += 1;
+        }
 
         Ok(())
     }
@@ -170,11 +157,11 @@ mod tests {
     // INSERT
 
     #[test]
-    fn linked_list_empty_insert() {
+    fn linked_list_empty_push() {
         // Data
         let data = 0;
         let mut linked_list: LinkedList<i32> = LinkedList::new();
-        let _ = linked_list.insert(data, None);
+        let _ = linked_list.push(data);
         // Run
         let result = linked_list.head.clone();
         // Assert
@@ -182,14 +169,53 @@ mod tests {
     }
 
     #[test]
-    fn linked_list_insert() {
+    fn linked_list_empty_insert_after() {
+        // Data
+        let data = 0;
+        let mut linked_list: LinkedList<i32> = LinkedList::new();
+        // Run
+        let result = linked_list.insert_after(data, 0);
+        // Assert
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn linked_list_empty_append() {
+        // Data
+        let data = 0;
+        let mut linked_list: LinkedList<i32> = LinkedList::new();
+        let _ = linked_list.append(data);
+        // Run
+        let result = linked_list.head.clone();
+        // Assert
+        assert_eq!(result.unwrap().borrow().get_data(), &data);
+    }
+
+    #[test]
+    fn linked_list_insert_after() {
         // Data
         let data0 = 0;
         let data1 = 1;
         let mut linked_list: LinkedList<i32> = LinkedList::new();
         // Run
-        let _ = linked_list.insert(data0, None);
-        let _ = linked_list.insert(data1, None);
+        let _ = linked_list.push(data0);
+        let _ = linked_list.insert_after(data1, 0);
+        let result0 = linked_list.read_at(0).unwrap();
+        let result1 = linked_list.read_at(1).unwrap();
+        // Assert
+        assert_eq!(result0, data0);
+        assert_eq!(result1, data1);
+    }
+
+    #[test]
+    fn linked_list_append() {
+        // Data
+        let data0 = 0;
+        let data1 = 1;
+        let mut linked_list: LinkedList<i32> = LinkedList::new();
+        // Run
+        let _ = linked_list.push(data0);
+        let _ = linked_list.append(data1);
         let result0 = linked_list.read_at(0).unwrap();
         let result1 = linked_list.read_at(1).unwrap();
         // Assert
@@ -205,9 +231,9 @@ mod tests {
         let data2 = 2;
         let mut linked_list: LinkedList<i32> = LinkedList::new();
         // Run
-        let _ = linked_list.insert(data0, None);
-        let _ = linked_list.insert(data2, None);
-        let _ = linked_list.insert(data1, Some(1));
+        let _ = linked_list.push(data0);
+        let _ = linked_list.append(data2);
+        let _ = linked_list.insert_after(data1, 0);
         let result0 = linked_list.read_at(0).unwrap();
         let result1 = linked_list.read_at(1).unwrap();
         let result2 = linked_list.read_at(2).unwrap();
@@ -220,11 +246,12 @@ mod tests {
     #[test]
     fn linked_list_insert_out_of_range() {
         // Data
-        let i = 2;
+        let data0 = 0;
         let data2 = 2;
         let mut linked_list: LinkedList<i32> = LinkedList::new();
+        let _ = linked_list.push(data0);
         // Run
-        let result = linked_list.insert(data2, Some(i));
+        let result = linked_list.insert_after(data2, 2);
         // Assert
         assert!(result.is_err());
     }
@@ -237,7 +264,7 @@ mod tests {
         let i = 0;
         let data = 0;
         let mut linked_list: LinkedList<i32> = LinkedList::new();
-        let _ = linked_list.insert(data, None);
+        let _ = linked_list.push(data);
         // Run
         let expected = linked_list.head.clone();
         let result = linked_list.get_node_at(i).unwrap();
@@ -251,7 +278,7 @@ mod tests {
         let i = 0;
         let data = 0;
         let mut linked_list: LinkedList<i32> = LinkedList::new();
-        let _ = linked_list.insert(data, None);
+        let _ = linked_list.push(data);
         // Run
         let result = linked_list.read_at(i).unwrap();
         // Assert
@@ -266,9 +293,9 @@ mod tests {
         let data1 = 1;
         let data2 = 0;
         let mut linked_list: LinkedList<i32> = LinkedList::new();
-        let _ = linked_list.insert(data0, None);
-        let _ = linked_list.insert(data1, None);
-        let _ = linked_list.insert(data2, None);
+        let _ = linked_list.push(data0);
+        let _ = linked_list.append(data1);
+        let _ = linked_list.append(data2);
         // Run
         let result = linked_list.read_at(i).unwrap();
         // Assert
@@ -281,7 +308,7 @@ mod tests {
         let i = 1;
         let data = 0;
         let mut linked_list: LinkedList<i32> = LinkedList::new();
-        let _ = linked_list.insert(data, None);
+        let _ = linked_list.push(data);
         // Run
         let result = linked_list.read_at(i);
         // Assert
@@ -296,7 +323,7 @@ mod tests {
         let i = 0;
         let data = 0;
         let mut linked_list: LinkedList<i32> = LinkedList::new();
-        let _ = linked_list.insert(data, None);
+        let _ = linked_list.push(data);
         // Run
         let result = linked_list.index_of(data).unwrap();
         // Assert
@@ -311,9 +338,9 @@ mod tests {
         let data1 = 1;
         let data2 = 2;
         let mut linked_list: LinkedList<i32> = LinkedList::new();
-        let _ = linked_list.insert(data0, None);
-        let _ = linked_list.insert(data1, None);
-        let _ = linked_list.insert(data2, None);
+        let _ = linked_list.push(data0);
+        let _ = linked_list.append(data1);
+        let _ = linked_list.append(data2);
         // Run
         let result = linked_list.index_of(data1).unwrap();
         // Assert
@@ -326,11 +353,11 @@ mod tests {
         let data = 0;
         let data_search = 1;
         let mut linked_list: LinkedList<i32> = LinkedList::new();
-        let _ = linked_list.insert(data, None);
+        let _ = linked_list.push(data);
         // Run
         let result = linked_list.index_of(data_search);
         // Assert
-        assert_eq!(result, None);
+        assert!(result.is_none());
     }
 
     // UPDATE
@@ -341,7 +368,7 @@ mod tests {
         let i = 0;
         let data = 0;
         let mut linked_list: LinkedList<i32> = LinkedList::new();
-        let _ = linked_list.insert(data, None);
+        let _ = linked_list.push(data);
         let new_data = 1;
         // Run
         let _ = linked_list.update_at(new_data, i);
@@ -358,9 +385,9 @@ mod tests {
         let data1 = 1;
         let data2 = 2;
         let mut linked_list: LinkedList<i32> = LinkedList::new();
-        let _ = linked_list.insert(data0, None);
-        let _ = linked_list.insert(data1, None);
-        let _ = linked_list.insert(data2, None);
+        let _ = linked_list.push(data0);
+        let _ = linked_list.append(data1);
+        let _ = linked_list.append(data2);
         let new_data = 3;
         // Run
         let _ = linked_list.update_at(new_data, i);
@@ -375,7 +402,7 @@ mod tests {
         let i = 1;
         let data = 0;
         let mut linked_list: LinkedList<i32> = LinkedList::new();
-        let _ = linked_list.insert(data, None);
+        let _ = linked_list.push(data);
         let new_data = 3;
         // Run
         let _ = linked_list.update_at(new_data, i);
@@ -394,8 +421,8 @@ mod tests {
         let data_ref = 0;
         let data_tgt = 1;
         let mut linked_list: LinkedList<i32> = LinkedList::new();
-        let _ = linked_list.insert(data_ref, None);
-        let _ = linked_list.insert(data_tgt, None);
+        let _ = linked_list.push(data_ref);
+        let _ = linked_list.append(data_tgt);
         // Run
         let _ = linked_list.swap_at(i_ref, i_tgt);
         let result0 = linked_list.read_at(0).unwrap();
@@ -413,8 +440,8 @@ mod tests {
         let data_ref = 0;
         let data_tgt = 1;
         let mut linked_list: LinkedList<i32> = LinkedList::new();
-        let _ = linked_list.insert(data_ref, None);
-        let _ = linked_list.insert(data_tgt, None);
+        let _ = linked_list.push(data_ref);
+        let _ = linked_list.append(data_tgt);
         // Run
         let result = linked_list.swap_at(i_ref, i_tgt);
         // Assert
@@ -430,8 +457,8 @@ mod tests {
         let data0 = 0;
         let data1 = 1;
         let mut linked_list: LinkedList<i32> = LinkedList::new();
-        let _ = linked_list.insert(data0, None);
-        let _ = linked_list.insert(data1, None);
+        let _ = linked_list.push(data0);
+        let _ = linked_list.push(data1);
         // Run
         let _ = linked_list.remove_at(i);
         let result = linked_list.read_at(i).unwrap();
@@ -447,9 +474,9 @@ mod tests {
         let data1 = 1;
         let data2 = 2;
         let mut linked_list: LinkedList<i32> = LinkedList::new();
-        let _ = linked_list.insert(data0, None);
-        let _ = linked_list.insert(data1, None);
-        let _ = linked_list.insert(data2, None);
+        let _ = linked_list.push(data0);
+        let _ = linked_list.append(data1);
+        let _ = linked_list.append(data2);
         // Run
         let _ = linked_list.remove_at(i);
         let result = linked_list.read_at(i).unwrap();
@@ -463,7 +490,7 @@ mod tests {
         let i = 1;
         let data = 0;
         let mut linked_list: LinkedList<i32> = LinkedList::new();
-        let _ = linked_list.insert(data, None);
+        let _ = linked_list.push(data);
         // Run
         let result = linked_list.remove_at(i);
         // Assert

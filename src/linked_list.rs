@@ -71,7 +71,7 @@ where
             // Sets current i node as next of new node
             let new_node = NodeSingle::new(new_data, cur_node_at_i);
             // Sets previous node's next node to new node
-            (self.get_node_at(i)?).unwrap().borrow_mut().set_next(Some(Rc::new(RefCell::new(new_node))));
+            self.get_node_at(i)?.unwrap().borrow_mut().set_next(Some(Rc::new(RefCell::new(new_node))));
 
             self.length += 1;
         }
@@ -136,7 +136,14 @@ where
 
     /// Updates data at specified node
     pub fn update_at(&self, new_data: T, i: usize) -> Result<(), Box<dyn Error>> {
-        Err("Not implemented".into())
+        // Checks if index is valid
+        if i >= self.length {
+            return Err("Index out of range.".into());
+        }
+        // Sets data at node i
+        self.get_node_at(i)?.unwrap().borrow_mut().set_data(new_data);
+
+        Ok(())
     }
     /// Swaps data of the specified nodes
     pub fn swap_at(&self, i_ref: usize, i_tgt: usize) -> Result<(), Box<dyn Error>> {

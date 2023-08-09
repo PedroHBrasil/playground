@@ -50,13 +50,8 @@ mod test{
 
         assert_eq!(arr.length, length);
 
-        unsafe {
-            let elem0 = *arr.pointer;
-            let elem1 = *arr.pointer;
-            let elem2 = *arr.pointer;
-            assert_eq!(elem0, init_value);
-            assert_eq!(elem1, init_value);
-            assert_eq!(elem2, init_value);
+        for i in 0..length {
+            unsafe { assert_eq!(*arr.pointer.offset(i as isize), init_value) }
         }
 
         Ok(())

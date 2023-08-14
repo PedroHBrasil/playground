@@ -35,16 +35,36 @@ where
         }
     }
 
-    // Gets an element
-    pub fn get_at(&self, i: usize) -> Result<T, Box<dyn Error>> {
+    // Gets the value of an element
+    pub fn get_at(&self, i: usize) -> Result<&T, Box<dyn Error>> {
         // Makes sure index is in range
         if i >= self.length {
             return Err("Index out of bounds.".into());
         }
         // Gets ith element
-        let value = unsafe {*self.pointer.offset(i as isize)};
+        let value = unsafe {self.pointer.offset(i as isize).as_ref()};
+        if let Some(value) = value {
+            Ok(value)
+        } else {
+            Err("Null pointer found.".into())
+        }
+    }
 
-        Ok(value)
+    // Sets the value of an element
+    pub fn set_at(&self, i: usize, new_value: T) -> Result<(), Box<dyn Error>> {
+        // Makes sure index is in range
+        if i >= self.length {
+            return Err("Index out of bounds.".into());
+        }
+        // Sets ith element
+        let element = unsafe { self.pointer.offset(i as isize).as_mut() };
+        if let Some(element) = element {
+            *element = new_value;
+        } else {
+            return Err("Null pointer found".into())
+        }
+
+        Ok(())
     }
 }
 
@@ -76,7 +96,7 @@ mod test{
         let arr = Array::new(length, init_value)?;
 
         for i in 0..length {
-            assert_eq!(arr.get_at(i)?, init_value);
+            assert_eq!(arr.get_at(i)?, &init_value);
         }
 
         Ok(())
@@ -93,5 +113,29 @@ mod test{
         Ok(())
     }
 
+    #[test]
+    fn set() -> Result<(), Box<dyn Error>> {
+        let length = 3;
+        let init_value = 1;
+        let arr = Array::new(length, init_value)?;
+
+        for i in 0..length {
+            arr.set_at(i, i)?;
+            assert_eq!(arr.get_at(i)?, &i);
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn set_err() -> Result<(), Box<dyn Error>> {
+        let length = 3;
+        let init_value = 1;
+        let arr = Array::new(length, init_value)?;
+
+        assert!(arr.set_at(length, init_value).is_err());
+
+        Ok(())
+    }
 
 }

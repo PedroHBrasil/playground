@@ -1,4 +1,4 @@
-use std::alloc::LayoutError;
+use std::{alloc::LayoutError, error::Error};
 
 
 struct Array<T> {
@@ -34,6 +34,18 @@ where
             *cur_ptr = init_value;
         }
     }
+
+    // Gets an element
+    pub fn get_at(&self, i: usize) -> Result<T, Box<dyn Error>> {
+        // Makes sure index is in range
+        if i >= self.length {
+            return Err("Index out of bounds.".into());
+        }
+        // Gets ith element
+        let value = unsafe {*self.pointer.offset(i as isize)};
+
+        Ok(value)
+    }
 }
 
 #[cfg(test)]
@@ -56,4 +68,30 @@ mod test{
 
         Ok(())
     }
+
+    #[test]
+    fn get() -> Result<(), Box<dyn Error>> {
+        let length = 3;
+        let init_value = 1;
+        let arr = Array::new(length, init_value)?;
+
+        for i in 0..length {
+            assert_eq!(arr.get_at(i)?, init_value);
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn get_err() -> Result<(), Box<dyn Error>> {
+        let length = 3;
+        let init_value = 1;
+        let arr = Array::new(length, init_value)?;
+
+        assert!(arr.get_at(length).is_err());
+
+        Ok(())
+    }
+
+
 }

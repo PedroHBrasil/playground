@@ -27,8 +27,11 @@ struct Blockchain<T> {
 }
 
 impl<T> Blockchain<T> {
-
-    fn build() -> Self {
-        unimplemented!()
+    /// Builds a new blockchain
+    fn build(data: T) -> Self {
+        let genesis = Block::build(0, 0, 0, data);
+        let mut chain = Vec::new();
+        chain.push(genesis);
+        Self { chain }
     }
 }

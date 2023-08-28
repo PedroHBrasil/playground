@@ -80,6 +80,17 @@ where
     }
 }
 
+impl<T> Drop for Array<T> {
+    fn drop(&mut self) {
+        // Deallocates memory
+        let layout = std::alloc::Layout::array::<T>(self.length).unwrap();
+        unsafe {
+            std::ptr::drop_in_place(std::slice::from_raw_parts_mut(self.pointer, self.length));
+            std::alloc::dealloc(self.pointer as *mut u8, layout)
+        };
+    }
+}
+
 #[cfg(test)]
 mod test{
     use std::error::Error;
@@ -155,6 +166,23 @@ mod test{
 
         // Error: value not found
         assert!(arr.index_of(init_value).is_err());
+
+        Ok(())
+    }
+
+    fn drop() -> Result<(), Box<dyn Error>> {
+        let length = 3;
+        let init_value = 1;
+        // Initializes the array and drops it by letting it go out of scope.
+        let ptr: *mut i32;
+        { 
+            let arr = Array::new(length, init_value)?;
+            ptr = arr.pointer;
+        }
+        // Checks if array pointers are null (array has been dropped if they are)
+        for i in 0..length {
+            unsafe { assert!(ptr.offset(i as isize).is_null()) }
+        }
 
         Ok(())
     }
